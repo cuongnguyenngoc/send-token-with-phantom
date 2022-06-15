@@ -100,21 +100,6 @@ const Content: FC =  () => {
     });
     console.log("publicKey",publicKey);
 
-    // try {
-    //   await axios.post("http://10.5.1.51:34572/bridge/in", {
-    //     transactionSignature: "4Hfm5ob7bpNZEkev1gWG6SX53XpsSVufqFEP2sYN83AZrwaTrBgqhoAP3b7SsHqbhCZGYtEUMJXGRPW5D1nrKYH9"
-    //   });
-
-    //   await axios.get("http://10.5.1.51:34572/inventory/540004719935094795")
-    //   .then(res=> setSIgsInv(res.data.sIgsAmount));
-
-    //   toast.success(`${igsNum} sIGS has been exchanged by ${igsNum} IGS`);
-    // } catch(err) {
-    //   console.log('err', err?.response?.data?.err?.msg);
-    //   toast.error(err?.response?.data?.err?.msg)
-    // }
-    // return;
-
     // Get the token account of the fromWallet address, and if it does not exist, create it
     const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
