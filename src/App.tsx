@@ -22,7 +22,6 @@ import { clusterApiUrl, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { FC, ReactNode, useMemo, useCallback, useState } from 'react';
 
 import { Connection } from '@metaplex/js';
-import { atlas } from './helpers/atlas';
 
 require('./App.css');
 require('@solana/wallet-adapter-react-ui/styles.css');
@@ -136,14 +135,6 @@ const Content: FC = () => {
     console.log('transaction sent', signature);
     await connection.confirmTransaction(signature, 'finalized');
     console.log("confirm transaction");
-
-    await atlas.exchangeOnChainTokenForOffChainItem({
-      userId: "540004719935094795",
-      txSignature: signature,
-      itemId: "furni_1x1_fridge_yellow", // offchain igs
-      quantity: igsNum
-    }).response
-    .catch(err => console.log('atlas error', err));
   }, [publicKey, sendTransaction, connection]);
 
   return (
