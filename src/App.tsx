@@ -5,18 +5,15 @@ import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-r
 import * as web3 from '@solana/web3.js';
 import { toast,ToastContainer } from "react-toastify";
 
-import {getOrCreateAssociatedTokenAccount,createTransferInstruction,TOKEN_PROGRAM_ID} from "@solana/spl-token"; // @ts-nocheck
-
+// import {getOrCreateAssociatedTokenAccount,createTransferInstruction,TOKEN_PROGRAM_ID} from "@solana/spl-token"; // @ts-nocheck
+import {Token,TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import '../src/css/bootstrap.css'
 import {
-  GlowWalletAdapter,
-  LedgerWalletAdapter,
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
   SolletExtensionWalletAdapter,
   SolletWalletAdapter,
-  TorusWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 
 import { clusterApiUrl, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -54,14 +51,11 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
   // of wallets that your users connect to will be loaded.
   const wallets = useMemo(
     () => [
-      new LedgerWalletAdapter(),
       new PhantomWalletAdapter(),
-      new GlowWalletAdapter(),
       new SlopeWalletAdapter(),
       new SolletExtensionWalletAdapter(),
       new SolletWalletAdapter(),
       new SolflareWalletAdapter({ network }),
-      new TorusWalletAdapter(),
     ],
     [network]
   );
@@ -100,34 +94,24 @@ const Content: FC =  () => {
     });
     console.log("publicKey",publicKey);
 
+    const token = new Token(connection, igs, TOKEN_PROGRAM_ID, signTransaction);
+    const fromTokenAccount = await token.getOrCreateAssociatedAccountInfo(publicKey)
+    const toTokenAccount = await token.getOrCreateAssociatedAccountInfo(toWalletPubKey)
     // Get the token account of the fromWallet address, and if it does not exist, create it
-    const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      publicKey,
-      igs,
-      publicKey,
-      signTransaction
-    );
     console.log("fromTokenAccount",fromTokenAccount.address)
 
-    const toTokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      publicKey,
-      igs,
-      toWalletPubKey,
-      signTransaction
-    );
     console.log("toTokenAccount",toTokenAccount.address)
 
     console.log("igsNum",igsNum);
+
     const transaction = new Transaction().add(
-      createTransferInstruction(
-        fromTokenAccount.address, // source
-        toTokenAccount.address, // dest
-        publicKey,
-        Number(igsNum),
-        [],
-        TOKEN_PROGRAM_ID
+      Token.createTransferInstruction(
+          TOKEN_PROGRAM_ID,
+          fromTokenAccount.address,
+          toTokenAccount.address,
+          publicKey,
+          [],
+          Number(igsNum)
       )
     )
 
