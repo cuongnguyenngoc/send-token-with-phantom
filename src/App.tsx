@@ -26,7 +26,7 @@ require('./App.css');
 require('@solana/wallet-adapter-react-ui/styles.css');
 require('react-toastify/dist/ReactToastify.css');
 
-const theWallet = "8QEz51cud4EUjyd2tY3BfHvxWLPaXrVfdmjJqz9Hb432"
+const theWallet = "AVKW5Dr3CtuiWDnAYLTEmkRNPNxsCNER62TctxmgTMat"
 
 const App: FC = () => {
   return (
@@ -96,24 +96,40 @@ const Content: FC =  () => {
 
     const token = new Token(connection, igs, TOKEN_PROGRAM_ID, signTransaction);
     const fromTokenAccount = await token.getOrCreateAssociatedAccountInfo(publicKey)
-    const toTokenAccount = await token.getOrCreateAssociatedAccountInfo(toWalletPubKey)
-    // Get the token account of the fromWallet address, and if it does not exist, create it
-    console.log("fromTokenAccount",fromTokenAccount.address)
 
-    console.log("toTokenAccount",toTokenAccount.address)
+    // Get the derived address of the destination wallet which will hold the custom token
+    const associatedDestTokenAddr = await Token.getAssociatedTokenAddress(
+      token.associatedProgramId,
+      token.programId,
+      igs,
+      toWalletPubKey
+    );
 
-    console.log("igsNum",igsNum);
+    const receiverAccount = await connection.getAccountInfo(associatedDestTokenAddr);
+    if (receiverAccount === null) {
+      instructions.push(
+        Token.createAssociatedTokenAccountInstruction(
+          token.associatedProgramId,
+          token.programId,
+          igs,
+          associatedDestTokenAddr,
+          toWalletPubKey,
+          publicKey // sender need to pay this too
+        )
+      )
+    }
 
-    const transaction = new Transaction().add(
+    instructions.push(
       Token.createTransferInstruction(
           TOKEN_PROGRAM_ID,
           fromTokenAccount.address,
-          toTokenAccount.address,
+          associatedDestTokenAddr,
           publicKey,
           [],
           Number(igsNum)
       )
     )
+    const transaction = new web3.Transaction().add(...instructions);
 
     const blockHash = await connection.getRecentBlockhash()
     transaction.feePayer = await publicKey;
