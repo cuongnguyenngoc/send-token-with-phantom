@@ -16,7 +16,7 @@ import {
   SolletWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 
-import { clusterApiUrl, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { clusterApiUrl,  LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { FC, ReactNode, useMemo, useCallback, useState } from 'react';
 
 import { Connection } from '@metaplex/js';
@@ -105,6 +105,8 @@ const Content: FC =  () => {
       toWalletPubKey
     );
 
+    const instructions:web3.TransactionInstruction[] = [];
+
     const receiverAccount = await connection.getAccountInfo(associatedDestTokenAddr);
     if (receiverAccount === null) {
       instructions.push(
@@ -147,14 +149,16 @@ const Content: FC =  () => {
     toast.success("confirmed transaction");
 
     try {
+      const exchangeRate = 100;
       await axios.post("http://10.5.1.51:34572/bridge/in", {
-        transactionSignature: signature
+        transactionSignature: signature,
+        exchangeRate
       });
 
       await axios.get("http://10.5.1.51:34572/inventory/540004719935094795")
       .then(res=> setSIgsInv(res.data.sIgsAmount));
 
-      toast.success(`${igsNum} sIGS has been exchanged by ${igsNum} IGS`);
+      toast.success(`${igsNum} sIGS has been exchanged by ${igsNum*exchangeRate} IGS`);
     } catch(err) {
       console.log('err', err?.response?.data?.err?.msg);
       toast.error(err?.response?.data?.err?.msg)
